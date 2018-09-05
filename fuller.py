@@ -22,7 +22,7 @@ def d_fuller(series):
     X_ = torch.cat((X, torch.ones_like(on, dtype=torch.float64)), 1)
 
     coeff = torch.mm(torch.mm(torch.inverse(torch.mm(torch.t(X_), X_)), 
-                                                                                                    torch.t(X_)), dX)
+                                                     torch.t(X_)), dX)
     std_err = get_std_error(X_, dX, coeff)
     coeff_std_err = get_coeff_std_error(X_, std_err, coeff)
 
