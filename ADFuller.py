@@ -1,11 +1,9 @@
 #coding:utf-8
 """Augmented Dickey-Fuller test implemented using Pytorch"""
-import numpy as np
 import math
 import torch
+import numpy as np
 from pandas import Series
-import pickle
-from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
 
 def ad_fuller(series, maxlag=None):
