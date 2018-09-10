@@ -8,6 +8,7 @@ from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
 
 def ad_fuller(series, maxlag=None):
+  """Get series and return the p-value and the t-stat of the coefficient"""
   if maxlag == None:
     n = int((len(series) - 1) ** (1./3))
   else:
@@ -61,6 +62,8 @@ def ad_fuller(series, maxlag=None):
   return t_stat.item(), p.item(), n, nobs, critvalues
 
 def get_coeff_std_error(X, std_error, p):
+  """Receive the regression standard error 
+         and calculate for the coefficient p"""
   std_coeff = []
   for i in range(len(p)):
     s = torch.inverse(torch.mm(torch.t(X), X))[i][i] * (std_error ** 2)
@@ -69,6 +72,7 @@ def get_coeff_std_error(X, std_error, p):
   return std_coeff
 
 def get_std_error(X, label, p):
+  """Get the regression standard error"""
   std_error = 0
   y_new = torch.mm(X, p)
   for i in range(len(X)):
@@ -79,10 +83,12 @@ def get_std_error(X, label, p):
   return std_error
 
 def shift_tensor(t, shift):
+  """Shift the tensor to calculate the difference"""
   if shift == 0:
     return t
 
   return t.narrow(0, shift, t.shape[0] - shift)
 
 def shift_tensor2(t, shift, max_lag):
+  """Shift the tensor to calculate the difference"""
   return t.narrow(0, max_lag - shift, (t.shape[0] - max_lag))
