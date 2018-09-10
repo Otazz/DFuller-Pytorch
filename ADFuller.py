@@ -89,5 +89,5 @@ def shift_tensor(t, shift):
     return t.narrow(0, shift, t.shape[0] - shift)
 
 def shift_tensor2(t, shift, max_lag):
-    """Shift the tensor to calculate the difference"""
+    """Shift the tensor to add lag"""
     return t.narrow(0, max_lag - shift, (t.shape[0] - max_lag))
