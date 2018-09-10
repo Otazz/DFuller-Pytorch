@@ -1,4 +1,5 @@
 #coding:utf-8
+"""Augmented Dickey-Fuller test implemented using Pytorch"""
 import numpy as np
 import math
 import torch
