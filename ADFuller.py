@@ -1,16 +1,12 @@
 #coding:utf-8
 """Augmented Dickey-Fuller test implemented using Pytorch"""
-import numpy as np
 import math
 import torch
-from pandas import Series
-import pickle
-from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.adfvalues import mackinnonp, mackinnoncrit
 
 def ad_fuller(series, maxlag=None):
     """Get series and return the p-value and the t-stat of the coefficient"""
-    if maxlag == None:
+    if maxlag is None:
         n = int((len(series) - 1) ** (1./3))
     else:
         n = maxlag
@@ -18,21 +14,18 @@ def ad_fuller(series, maxlag=None):
 
     X = torch.tensor(series)
     X = X.type(torch.DoubleTensor)
-    X_1 = shift_tensor(X, 1)
     data_tensors = []
 
     X = X.narrow(0, 0, X.shape[0] - 1)
-    dX = X_1 - X
+    dX = shift_tensor(X, 1) - X
 
     for i in range(1, n + 1):
         a = shift_tensor2(dX, i, n)
         data_tensors.append(a)
 
-    data_tensors[0] = torch.reshape(data_tensors[0], 
-                                                            (data_tensors[0].shape[0], 1))
+    data_tensors[0] = torch.reshape(data_tensors[0], (data_tensors[0].shape[0], 1))
     for i in range(1, n):
-        data_tensors[i] = torch.reshape(data_tensors[i], 
-                                                                (data_tensors[0].shape[0], 1))
+        data_tensors[i] = torch.reshape(data_tensors[i], (data_tensors[0].shape[0], 1))
         data_tensors[0] = torch.cat((data_tensors[0], data_tensors[i]), 1)
 
     X = X.narrow(0, 0, X.shape[0] - n)
@@ -57,14 +50,13 @@ def ad_fuller(series, maxlag=None):
 
     p = mackinnonp(t_stat.item(), regression="c", N=1)
     critvalues = mackinnoncrit(N=1, regression="c", nobs=nobs)
-    critvalues = {"1%" : critvalues[0], "5%" : critvalues[1],
-                                    "10%" : critvalues[2]}
+    critvalues = {"1%" : critvalues[0], "5%" : critvalues[1], "10%" : critvalues[2]}
 
     return t_stat.item(), p.item(), n, nobs, critvalues
 
 def get_coeff_std_error(X, std_error, p):
     """Receive the regression standard error 
-                 and calculate for the coefficient p"""
+    and calculate for the coefficient p"""
     std_coeff = []
     for i in range(len(p)):
         s = torch.inverse(torch.mm(torch.t(X), X))[i][i] * (std_error ** 2)
