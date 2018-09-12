@@ -14,14 +14,14 @@ def ad_fuller(series, maxlag=None):
 
     X = torch.tensor(series)
     X = X.type(torch.DoubleTensor)
+    X_1 = shift_tensor(X, 1)
     data_tensors = []
 
     X = X.narrow(0, 0, X.shape[0] - 1)
-    dX = shift_tensor(X, 1) - X
+    dX = X_1 - X
 
     for i in range(1, n + 1):
-        a = shift_tensor2(dX, i, n)
-        data_tensors.append(a)
+        data_tensors.(dX.narrow(0, n - i, (dX.shape[0] - n)))
 
     data_tensors[0] = torch.reshape(data_tensors[0], (data_tensors[0].shape[0], 1))
     for i in range(1, n):
@@ -39,7 +39,6 @@ def ad_fuller(series, maxlag=None):
     X_ = torch.cat((X, torch.ones_like(on, dtype=torch.float64)), 1)
 
     nobs = X_.shape[0]
-
 
     # Xb = y -> Xt.X.b = Xt.y -> b = (Xt.X)^-1.Xt.y
     coeff = torch.mm(torch.mm(torch.inverse(torch.mm(torch.t(X_), X_)), torch.t(X_)), dX)
@@ -76,12 +75,8 @@ def get_std_error(X, label, p):
     return std_error
 
 def shift_tensor(t, shift):
-    """Shift the tensor to calculate the difference"""
+    """Shift the tensor 1 unit to calculate the difference"""
     if shift == 0:
         return t
 
     return t.narrow(0, shift, t.shape[0] - shift)
-
-def shift_tensor2(t, shift, max_lag):
-    """Shift the tensor to calculate the difference"""
-    return t.narrow(0, max_lag - shift, (t.shape[0] - max_lag))
