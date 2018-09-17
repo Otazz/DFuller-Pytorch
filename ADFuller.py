@@ -51,7 +51,7 @@ def ad_fuller(series, maxlag=None):
     # Xb = y -> Xt.X.b = Xt.y -> b = (Xt.X)^-1.Xt.y
     coeff = torch.mm(torch.mm(torch.inverse(
             torch.mm(torch.t(X_), X_)), torch.t(X_)), dX)
-    
+
     std_error = get_std_error(X_, dX, coeff)
     coeff_std_err = get_coeff_std_error(X_, std_error, coeff)[0]
     t_stat = coeff[0]/coeff_std_err
@@ -64,7 +64,7 @@ def ad_fuller(series, maxlag=None):
                   "10%" : critvalues[2]
                  }
 
-    return t_stat.item(), p_value.item(), n, nobs, critvalues
+    return t_stat.item(), p_value, n, nobs, critvalues
 
 def get_coeff_std_error(X, std_error, p):
     """Receive the regression standard error
