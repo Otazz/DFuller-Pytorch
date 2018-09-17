@@ -22,15 +22,15 @@ def ad_fuller(series, maxlag=None):
     X = X.narrow(0, 0, X.shape[0] - 1) # Re-sizing the x values to get the difference
     dX = X_1 - X                       # Calculating the difference
 
-    # Storing the lagged difference tensors
+    # Generating the lagged difference tensors
+    # and concatenating the lagged tensors into a single one
     for i in range(1, n + 1):
-        data_tensors.append(dX.narrow(0, n - i, (dX.shape[0] - n))) 
-
-    # Concatenating the lagged tensors into a single one
-    lagged_tensors = torch.reshape(data_tensors[0], (data_tensors[0].shape[0], 1))
-    for i in range(1, n):
-        data_tensors[i] = torch.reshape(data_tensors[i], (lagged_tensors.shape[0], 1))
-        lagged_tensors = torch.cat((lagged_tensors, data_tensors[i]), 1)
+        lagged_n = dX.narrow(0, n - i, (dX.shape[0] - n))
+        lagged_reshape = torch.reshape(lagged_n, (lagged_n.shape[0], 1))
+        if i == 1:
+            lagged_tensors = lagged_reshape
+        else:
+            lagged_tensors = torch.cat((lagged_tensors, lagged_reshape), 1)
 
     # Reshaping the X and the difference tensor to match the dimension of the lagged ones
     X = X.narrow(0, 0, X.shape[0] - n)
@@ -47,17 +47,13 @@ def ad_fuller(series, maxlag=None):
 
     # Xb = y -> Xt.X.b = Xt.y -> b = (Xt.X)^-1.Xt.y
     coeff = torch.mm(torch.mm(torch.inverse(torch.mm(torch.t(X_), X_)), torch.t(X_)), dX)
-
-    # Get the coefficients std error and then the t-stat
     coeff_std_err = get_coeff_std_error(X_, get_std_error(X_, dX, coeff), coeff)[0]
     t_stat = coeff[0]/coeff_std_err
 
-    # With the t-stat get the p-value for the time series
     p = mackinnonp(t_stat.item(), regression="c", N=1)
     critvalues = mackinnoncrit(N=1, regression="c", nobs=nobs)
     critvalues = {"1%" : critvalues[0], "5%" : critvalues[1], "10%" : critvalues[2]}
 
-    # Returning a tuple on the statsmodels format
     return t_stat.item(), p.item(), n, nobs, critvalues
 
 def get_coeff_std_error(X, std_error, p):
