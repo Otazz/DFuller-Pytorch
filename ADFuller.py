@@ -18,7 +18,7 @@ def ad_fuller(series, maxlag=None):
     X = X.type(torch.DoubleTensor)
 
     # Generating the lagged tensor to calculate the difference
-    X_1 = shift_tensor(X, 1)
+    X_1 = X.narrow(0, 1, X.shape[0] - 1)
 
     # Re-sizing the x values to get the difference
     X = X.narrow(0, 0, X.shape[0] - 1)
@@ -59,7 +59,7 @@ def ad_fuller(series, maxlag=None):
     p_value = mackinnonp(t_stat.item(), regression="c", N=1)
     critvalues = mackinnoncrit(N=1, regression="c", nobs=nobs)
     critvalues = {
-                  "1%" : critvalues[0], 
+                  "1%" : critvalues[0],
                   "5%" : critvalues[1], 
                   "10%" : critvalues[2]
                  }
@@ -86,10 +86,3 @@ def get_std_error(X, label, p):
     std_error = math.sqrt(std_error/X.shape[0])
 
     return std_error
-
-def shift_tensor(tensor, shift):
-    """Shift the tensor 1 unit to calculate the difference"""
-    if shift == 0:
-        return tensor
-
-    return tensor.narrow(0, shift, tensor.shape[0] - shift)
