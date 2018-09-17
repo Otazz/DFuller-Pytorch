@@ -8,6 +8,8 @@ def ad_fuller(series, maxlag=None):
     """Get series and return the p-value and the t-stat of the coefficient"""
     if maxlag is None:
         n = int((len(series) - 1) ** (1./3))
+    elif maxlag < 1:
+        n = 1
     else:
         n = maxlag
 
@@ -41,10 +43,8 @@ def ad_fuller(series, maxlag=None):
 
     # Xb = y -> Xt.X.b = Xt.y -> b = (Xt.X)^-1.Xt.y
     coeff = torch.mm(torch.mm(torch.inverse(torch.mm(torch.t(X_), X_)), torch.t(X_)), dX)
-
-    std_err = get_std_error(X_, dX, coeff)
-    coeff_std_err = get_coeff_std_error(X_, std_err, coeff)
-    t_stat = coeff[0]/coeff_std_err[0]
+    coeff_std_err = get_coeff_std_error(X_, get_std_error(X_, dX, coeff), coeff)[0]
+    t_stat = coeff[0]/coeff_std_err
 
     p = mackinnonp(t_stat.item(), regression="c", N=1)
     critvalues = mackinnoncrit(N=1, regression="c", nobs=nobs)
