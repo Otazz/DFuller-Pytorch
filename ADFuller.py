@@ -10,7 +10,6 @@ def ad_fuller(series, maxlag=None):
         n = int((len(series) - 1) ** (1./3))
     else:
         n = maxlag
-    print(n)
 
     X = torch.tensor(series)
     X = X.type(torch.DoubleTensor)
