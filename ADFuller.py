@@ -17,7 +17,6 @@ def ad_fuller(series, maxlag=None):
     X = X.type(torch.DoubleTensor)  # with Double as type.
 
     X_1 = shift_tensor(X, 1)        # Generating the lagged tensor to calculate the difference
-    data_tensors = []
 
     X = X.narrow(0, 0, X.shape[0] - 1) # Re-sizing the x values to get the difference
     dX = X_1 - X                       # Calculating the difference
@@ -37,11 +36,11 @@ def ad_fuller(series, maxlag=None):
     dX = dX.narrow(0, n, dX.shape[0] - n)
     dX = torch.reshape(dX, (dX.shape[0], 1))
 
-    # Concatenating the lagged tensors to the X one 
+    # Concatenating the lagged tensors to the X one
     # and adding a column full of ones for the Linear Regression
     X = torch.cat((torch.reshape(X, (X.shape[0], 1)), lagged_tensors), 1)
-    on = torch.ones((X.shape[0], 1))
-    X_ = torch.cat((X, torch.ones_like(on, dtype=torch.float64)), 1)
+    ones_columns = torch.ones((X.shape[0], 1))
+    X_ = torch.cat((X, torch.ones_like(ones_column, dtype=torch.float64)), 1)
 
     nobs = X_.shape[0]
 
@@ -50,14 +49,14 @@ def ad_fuller(series, maxlag=None):
     coeff_std_err = get_coeff_std_error(X_, get_std_error(X_, dX, coeff), coeff)[0]
     t_stat = coeff[0]/coeff_std_err
 
-    p = mackinnonp(t_stat.item(), regression="c", N=1)
+    p_value = mackinnonp(t_stat.item(), regression="c", N=1)
     critvalues = mackinnoncrit(N=1, regression="c", nobs=nobs)
     critvalues = {"1%" : critvalues[0], "5%" : critvalues[1], "10%" : critvalues[2]}
 
-    return t_stat.item(), p.item(), n, nobs, critvalues
+    return t_stat.item(), p_value.item(), n, nobs, critvalues
 
 def get_coeff_std_error(X, std_error, p):
-    """Receive the regression standard error 
+    """Receive the regression standard error
     and calculate for the coefficient p"""
     std_coeff = []
     for i in range(len(p)):
@@ -77,9 +76,9 @@ def get_std_error(X, label, p):
 
     return std_error
 
-def shift_tensor(t, shift):
+def shift_tensor(tensor, shift):
     """Shift the tensor 1 unit to calculate the difference"""
     if shift == 0:
-        return t
+        return tensor
 
-    return t.narrow(0, shift, t.shape[0] - shift)
+    return tensor.narrow(0, shift, tensor.shape[0] - shift)
