@@ -40,7 +40,7 @@ def ad_fuller(series, maxlag=None):
     # and adding a column full of ones for the Linear Regression
     X = torch.cat((torch.reshape(X, (X.shape[0], 1)), lagged_tensors), 1)
     ones_columns = torch.ones((X.shape[0], 1))
-    X_ = torch.cat((X, torch.ones_like(ones_column, dtype=torch.float64)), 1)
+    X_ = torch.cat((X, torch.ones_like(ones_columns, dtype=torch.float64)), 1)
 
     nobs = X_.shape[0]
 
