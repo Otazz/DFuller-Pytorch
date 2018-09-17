@@ -13,13 +13,16 @@ def ad_fuller(series, maxlag=None):
     else:
         n = maxlag
 
-    X = torch.tensor(series)        # Putting the X values on a Tensor
-    X = X.type(torch.DoubleTensor)  # with Double as type.
+    # Putting the X values on a Tensor with Double as type
+    X = torch.tensor(series) 
+    X = X.type(torch.DoubleTensor)
 
-    X_1 = shift_tensor(X, 1)        # Generating the lagged tensor to calculate the difference
+    # Generating the lagged tensor to calculate the difference
+    X_1 = shift_tensor(X, 1)
 
-    X = X.narrow(0, 0, X.shape[0] - 1) # Re-sizing the x values to get the difference
-    dX = X_1 - X                       # Calculating the difference
+    # Re-sizing the x values to get the difference
+    X = X.narrow(0, 0, X.shape[0] - 1)
+    dX = X_1 - X
 
     # Generating the lagged difference tensors
     # and concatenating the lagged tensors into a single one
@@ -31,7 +34,8 @@ def ad_fuller(series, maxlag=None):
         else:
             lagged_tensors = torch.cat((lagged_tensors, lagged_reshape), 1)
 
-    # Reshaping the X and the difference tensor to match the dimension of the lagged ones
+    # Reshaping the X and the difference tensor 
+    # to match the dimension of the lagged ones
     X = X.narrow(0, 0, X.shape[0] - n)
     dX = dX.narrow(0, n, dX.shape[0] - n)
     dX = torch.reshape(dX, (dX.shape[0], 1))
@@ -45,13 +49,20 @@ def ad_fuller(series, maxlag=None):
     nobs = X_.shape[0]
 
     # Xb = y -> Xt.X.b = Xt.y -> b = (Xt.X)^-1.Xt.y
-    coeff = torch.mm(torch.mm(torch.inverse(torch.mm(torch.t(X_), X_)), torch.t(X_)), dX)
-    coeff_std_err = get_coeff_std_error(X_, get_std_error(X_, dX, coeff), coeff)[0]
+    coeff = torch.mm(torch.mm(torch.inverse(
+            torch.mm(torch.t(X_), X_)), torch.t(X_)), dX)
+    
+    std_error = get_std_error(X_, dX, coeff)
+    coeff_std_err = get_coeff_std_error(X_, std_error, coeff)[0]
     t_stat = coeff[0]/coeff_std_err
 
     p_value = mackinnonp(t_stat.item(), regression="c", N=1)
     critvalues = mackinnoncrit(N=1, regression="c", nobs=nobs)
-    critvalues = {"1%" : critvalues[0], "5%" : critvalues[1], "10%" : critvalues[2]}
+    critvalues = {
+                  "1%" : critvalues[0], 
+                  "5%" : critvalues[1], 
+                  "10%" : critvalues[2]
+                 }
 
     return t_stat.item(), p_value.item(), n, nobs, critvalues
 
